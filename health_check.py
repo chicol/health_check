@@ -26,28 +26,52 @@ def judge_condition(data, conditions, results):
     elif len(value) > 5:
         print("conditions: {}".format(value))
         condition_list = re.split('(F[A|B|C][0-9]{2}[F\|T|S|E])', value)
-        while '' in condition_list:
-            condition_list.remove('')
-        # 取list中第奇数个元素 ==> 条件;取list中第偶数个元素 ==> 操作符
-        condition_list1 = condition_list[0::2]
-        condition_list2 = condition_list[1::2]
-        if len(condition_list1) != len(condition_list2):
-            if len(condition_list1) > len(condition_list2):
-                condition_list2.append('')
-            else:
-                condition_list1.append('')
-        print("condition_list: {}".format(condition_list))
+        condition_list = [x for x in condition_list if x != '']
         conditions_str = ''
-        for key, operator in itertools.zip_longest(condition_list1, condition_list2):
-            conditions_str += str(is_data_exists(data, key)) + operator
-        print("conditions_str: {}".format(conditions_str))
+        start_flag = False
+        if value.startswith('F'):
+            start_flag = True
+            conditions = condition_list[0::2]
+            operators = condition_list[1::2]
+        else:
+            conditions = condition_list[1::2]
+            operators = condition_list[0::2]
+        if start_flag:
+            for condition, operator in zip(conditions, operators):
+                conditions_str += str(is_data_exists(data, condition)) + operator
+            if len(conditions) > len(operators):
+                conditions_str += str(is_data_exists(data, conditions[-1]))
+        else:
+            for condition, operator in zip(conditions, operators):
+                conditions_str += operator + str(is_data_exists(data, condition))
+            if len(operators) > len(conditions):
+                conditions_str += operators[-1]
+
+        # 将condition分成判断符和操作符两个list
+        # condition_list1 = condition_list[0::2]
+        # condition_list2 = condition_list[1::2]
+        # conditions_str = ''
+        # if "F" in condition_list1[0]:
+        #     for key, operator in zip(condition_list1, condition_list2):
+        #         conditions_str += str(is_data_exists(data, key)) + operator
+        #     if len(condition_list1) > len(condition_list2):
+        #         conditions_str += str(is_data_exists(data, condition_list1[-1]))
+        #     elif len(condition_list1) < len(condition_list2):
+        #         conditions_str += condition_list2[-1]
+        # elif "F" in condition_list2[0]:
+        #     for operator, key in zip(condition_list1, condition_list2):
+        #         conditions_str += operator + str(is_data_exists(data, key))
+        #     if len(condition_list1) > len(condition_list2):
+        #         conditions_str += condition_list1[-1]
+        #     elif len(condition_list1) < len(condition_list2):
+        #         conditions_str += str(is_data_exists(data, condition_list2[-1]))
         if eval(conditions_str):
             results.append(key)
 
 
 if '__main__' == __name__:
 
-    data = ['FA01F', 'FA02T', 'FA03F', 'FA04T', 'FA05F', 'FA06T', 'FA07F', 'FA08T', 'FA09F', 'FA10T', 'FA21F', 'FA12T', 'FA13F', 'FA14T', 'FA15F', 'FA16T', 'FA17F', 'FA18T', 'FA19T']
+    data = ['FA01F', 'FA02T', 'FA03F', 'FA04T', 'FA05F', 'FA06T', 'FA07F', 'FA08T', 'FA09F', 'FA10T', 'FA11F', 'FA12T', 'FA13F', 'FA14T', 'FA15F', 'FA16T', 'FA17F', 'FA18T', 'FA19T']
     rule_dir = os.getcwd() + '/data/rule.json'
     rule_dir = transfer_seperator(rule_dir)
     with open(rule_dir, 'r') as f:
@@ -62,8 +86,6 @@ if '__main__' == __name__:
     station_level = None
     print(data_no_pass)
     # conditions = data_no_pass['conditions']
-    # print(conditions)
-    # print("value: {}".format(condition.values()))
     condition1 = {'FAR07F': 'FA01T&(FA02T|(FA03T&FA18T&FA19T))&FA04T&FA05T&(FA06T|FA07T)&(FA08T|FA10T)&(FA11T|FA12T|FA13T|FA14T)&FA15T&FA16T&FA17T'}
     # judge_condition(data, list(condition.values())[0])
     # 检查数据质量--不通过的结果
