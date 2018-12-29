@@ -11,3 +11,11 @@ def transfer_seperator(path):
     else:
         return path.replace("/", real_sep)
 
+def zero_fill(data, size):
+    if len(data) < size:
+        return '0' * (size - len(data)) + str(data)
+    elif len(data) == size:
+        return data
+    else:
+        print("data size error.")
+
